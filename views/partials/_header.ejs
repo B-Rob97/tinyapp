@@ -20,12 +20,13 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div> 
-    <!--Display Username  -->
-    <!-- Display Username -->
     <div>
+      <!-- Check if username exists + logout button -->
       <% if (typeof username !== 'undefined') { %>
-        <h4><%= username %></h4>
-        <button type="submit" class ='btn btn-dark'>Logout</button>
+        <form action="/logout" method="post">
+          <label for="logout">Logged in as: <%= username %>!</label>
+          <button type="submit" class ='btn btn-dark'>Logout</button>
+        </form>
       <% } else { %>
         <!-- New Username -->
       <form action="/login" method="post">

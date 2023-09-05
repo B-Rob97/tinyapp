@@ -109,6 +109,13 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
 });
 
+// Post route for Logout
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
+  res.redirect('/urls');
+});
+
 
 
 
