@@ -84,6 +84,17 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+// Post Route for Login
+
+app.post("/login", (req, res) => {
+  const { username } = req.body;
+
+  console.log(username);
+
+  res.cookie('username', username);
+
+  res.redirect('/urls');
+});
 
 
 
