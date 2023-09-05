@@ -21,17 +21,20 @@
       </div>
     </div> 
     <!--Display Username  -->
+    <!-- Display Username -->
     <div>
-      <%= username %>
-    </div>
-    <!-- New Username -->
-    <form action="/login" method="post">
-        
+      <% if (typeof username !== 'undefined') { %>
+        <h4><%= username %></h4>
+        <button type="submit" class ='btn btn-dark'>Logout</button>
+      <% } else { %>
+        <!-- New Username -->
+      <form action="/login" method="post">
       <label for="username">Username</label>
-
       <input type="text" name="username">
-
       <button type="submit" class="btn btn-dark">Login</button>
-  </form>
+    </form>
+  <% } %>
+</div>
+
   </nav>
 </header>
