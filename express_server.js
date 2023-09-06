@@ -57,6 +57,9 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// If the user is not logged in, redirect GET /urls/new to GET /login
+// If the user is not logged in, POST /urls should respond with an HTML message that tells the user why they cannot shorten URLs. Double check that in this case the URL is not added to the database.
+
 // Post New URL
 app.post("/urls/", (req, res) => {
   const shortURL = generateRandomString();
@@ -117,12 +120,19 @@ app.get("/u/:id", (req, res) => {
 
 app.get("/login", (req, res) => {
   const loggedInUser = UserDatabase[req.cookies['user_id']];
+
+  if (loggedInUser) {
+    return res.redirect("/urls");
+  }
   const templateVars = {
     user: loggedInUser
   };
   res.render("login", templateVars);
 });
 
+
+// If the user is logged in, GET /login should redirect to GET /urls
+// If the user is logged in, GET /register should redirect to GET /urls
 
 // Post Route for Login
 
@@ -151,6 +161,11 @@ app.post('/logout', (req, res) => {
 
 app.get("/register", (req, res) => {
   const loggedInUser = UserDatabase[req.cookies['user_id']];
+  
+  if (loggedInUser) {
+    return res.redirect("/urls");
+  }
+  
   const templateVars = {
     user: loggedInUser};
 
