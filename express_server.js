@@ -50,8 +50,9 @@ app.get('/', (req, res) => { // * Will need to change this *
 
 // New
 app.get("/urls/new", (req, res) => {
+  const loggedInUser = UserDatabase[req.cookies['user_id']];
   const templateVars = {
-    username: req.cookies['username'],
+    user: loggedInUser
   };
   res.render("urls_new", templateVars);
 });
@@ -66,18 +67,20 @@ app.post("/urls/", (req, res) => {
 
 // All URLs
 app.get('/urls', (req, res) => {
+  const loggedInUser = UserDatabase[req.cookies['user_id']];
   const templateVars = {
-    username: req.cookies["username"],
+    user: loggedInUser,
     urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
 // Specific URL
 app.get('/urls/:id', (req, res) => {
+  const loggedInUser = UserDatabase[req.cookies['user_id']];
   const templateVars = {
+    user: loggedInUser,
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    username: req.cookies["username"]
+    longURL: urlDatabase[req.params.id]
   };
   res.render("urls_show", templateVars);
 });
@@ -110,36 +113,70 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+// Get route for login
+
+app.get("/login", (req, res) => {
+  const loggedInUser = UserDatabase[req.cookies['user_id']];
+  const templateVars = {
+    user: loggedInUser
+  };
+  res.render("login", templateVars);
+});
+
+
 // Post Route for Login
 
 app.post("/login", (req, res) => {
-  const { username } = req.body;
-  res.cookie('username', username);
-  res.redirect('/urls');
+  const { email, password } = req.body;
+  for (let userID in UserDatabase) {
+    if (email === UserDatabase[userID].email && password === UserDatabase[userID].password) {
+      res.cookie("user_id", userID);
+      return res.redirect("/urls");
+    }
+  }
+
+  res.status(401);
+  res.send("Wrong Credentials");
+
 });
 
 // Post route for Logout
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
 // Get Route for Registration Form
 
 app.get("/register", (req, res) => {
+  const loggedInUser = UserDatabase[req.cookies['user_id']];
+  const templateVars = {
+    user: loggedInUser};
 
-  res.render("registration");
+  res.render("registration", templateVars);
 
 });
 
 // Post Route for Registration
 
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  const id = generateRandomString();
 
+  if (email.length === 0 || password.length === 0) {
+    res.status(400);
+    res.send("Please enter a valid email and/or password");
+  }
+
+  for (let userID in UserDatabase) {
+    if (email === UserDatabase[userID].email) {
+      res.status(400);
+      res.send("Email already registered.");
+    }
+  }
+  
   const newUser = {
     id,
     email,
