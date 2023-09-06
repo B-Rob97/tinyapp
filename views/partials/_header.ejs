@@ -19,21 +19,21 @@
       </div>
     </div> 
     <div>
-      <!-- Check if username exists + logout button -->
+      <!-- Check if user exists -->
       <% if (user && typeof user.email !== 'undefined') { %>
         <form action="/logout" method="post">
           <label 
             style="vertical-align: middle;" 
-            for="logout" class="username-display">Logged in as: <%= user.email %>!</label>
-          <button style="vertical-align: middle; width: 75px; height: 50px; font-size: 10px;" type="submit" class ='btn btn-dark'>Logout</button>
+            for="logout" class="email-display">Logged in as: <%= user.email %>!</label>
+          <button type="submit" class ='btn btn-dark'>Logout</button>
         </form>
       <% } else { %>
         <!-- Show Login and Register buttons -->
         <form action="/login" method="get">
-          <button style="width: 75px; height: 28px; font-size: 10px; text-align: center;" type="submit" class="btn btn-light">Login</button>
+          <button type="submit" class="btn btn-light">Login</button>
         </form>
         <form action="/register" method="get">
-          <button style="width: 75px; height: 28px; font-size: 10px; text-align: center;" type="submit" class="btn btn-light">Register</button>
+          <button type="submit" class="btn btn-light">Register</button>
         </form>
       <% } %>
     </div>

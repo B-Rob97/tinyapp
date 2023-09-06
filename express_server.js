@@ -135,7 +135,7 @@ app.post("/login", (req, res) => {
     }
   }
 
-  res.status(401);
+  res.status(403);
   res.send("Wrong Credentials");
 
 });
@@ -144,7 +144,7 @@ app.post("/login", (req, res) => {
 
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 // Get Route for Registration Form
@@ -167,13 +167,13 @@ app.post("/register", (req, res) => {
 
   if (email.length === 0 || password.length === 0) {
     res.status(400);
-    res.send("Please enter a valid email and/or password");
+    return res.send("Please enter a valid email and/or password");
   }
 
   for (let userID in UserDatabase) {
     if (email === UserDatabase[userID].email) {
       res.status(400);
-      res.send("Email already registered.");
+      return res.send("Email already registered.");
     }
   }
   
@@ -185,7 +185,7 @@ app.post("/register", (req, res) => {
 
   UserDatabase[id] = newUser;
 
-  res.cookie("id", id);
+  res.cookie("user_id", id);
 
   console.log(UserDatabase);
 
