@@ -30,7 +30,7 @@ const urlDatabase = {
 
 // User Database
 
-const users = {
+const UserDatabase = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
@@ -135,21 +135,28 @@ app.get("/register", (req, res) => {
 
 // Post Route for Registration
 
-app.post()
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+
+  const newUser = {
+    id,
+    email,
+    password
+  };
+
+  UserDatabase[id] = newUser;
+
+  res.cookie("id", id);
+
+  console.log(UserDatabase);
+
+  res.redirect("/urls");
+});
 
 
 // Listen
 app.listen(PORT, (req, res) => {
   console.log(`App is listening on ${PORT}!`);
 });
-
-
-// Create a POST /register endpoint.
-
-// This endpoint should add a new user object to the global users object. The user object should include the user's id, email and password, similar to the example above.
-
-// To generate a random user ID, use the same function you use to generate random IDs for URLs.
-// After adding the user, set a user_id cookie containing the user's newly generated ID.
-// Redirect the user to the /urls page.
-// Test that the users object is properly being appended to. You can insert a console.log or debugger prior to the redirect logic to inspect what data the object contains.
-// Also test that the user_id cookie is being set correctly upon redirection. You already did this sort of testing in the Cookies in Express activity. Use the same approach here.
