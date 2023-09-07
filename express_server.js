@@ -1,7 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require("bcryptjs");
-const { getUserByEmail, generateRandomString } = require("./helperFunctions");
+const { getUserByEmail, generateRandomString, urlsForUser } = require("./helperFunctions");
 const cookieSession = require('cookie-session');
 
 const app = express();
@@ -210,19 +210,7 @@ app.get('/urls', (req, res) => {
     return res.send("Please log in or register to view short URLs");
   }
 
-  // Add to helperFunction***
-  const urlsForUser = function(id) {
-    let userURLs = {};
-    for (let shortURL in urlDatabase) {
-      const url = urlDatabase[shortURL];
-      if (url.userID === id) {
-        userURLs[shortURL] = url;
-      }
-    }
-    return userURLs;
-  };
-
-  const userURLs = urlsForUser(loggedInUser.id);
+  const userURLs = urlsForUser(loggedInUser.id, urlDatabase);
   
   const templateVars = {
     user: loggedInUser,
@@ -240,7 +228,7 @@ app.get("/login", (req, res) => {
     user: loggedInUser
   };
 
-  // req.session = null;
+  req.session = null;
 
   res.render("login", templateVars);
 });
@@ -267,8 +255,6 @@ app.post("/login", (req, res) => {
   req.session.user_id = userID;
   return res.redirect("/urls");
 });
-
-
 
 
 // Post route for Logout
@@ -307,13 +293,11 @@ app.post("/register", (req, res) => {
     return res.send("Please enter a valid email and/or password");
   }
 
-  for (let userID in UserDatabase) {
-    if (email === UserDatabase[userID].email) {
-      res.status(400);
-      return res.send("Email already registered.");
-    }
+  if (getUserByEmail(email, UserDatabase)) {
+    res.status(400);
+    return res.send("Email already registered.");
   }
-  
+
   const newUser = {
     id,
     email,

@@ -18,8 +18,19 @@ const generateRandomString = function() {
   return randomString;
 };
 
+const urlsForUser = function(id, urlDatabase) {
+  let userURLs = {};
+  for (let shortURL in urlDatabase) {
+    const url = urlDatabase[shortURL];
+    if (url.userID === id) {
+      userURLs[shortURL] = url;
+    }
+  }
+  return userURLs;
+};
 
-module.exports = { getUserByEmail, generateRandomString };
+
+module.exports = { getUserByEmail, generateRandomString, urlsForUser };
 
 
 // .email && password === UserDatabase[userID].password
