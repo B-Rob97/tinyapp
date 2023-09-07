@@ -1,5 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
+const getUserByEmail = require("./helperFunctions");
 
 const app = express();
 const PORT = 8080;
@@ -7,6 +9,10 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+
+/////const password = "purple-monkey-dinosaur"; // found in the req.body object
+
 
 
 const generateRandomString = function() {
@@ -238,18 +244,23 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  for (let userID in UserDatabase) {
-    if (email === UserDatabase[userID].email && password === UserDatabase[userID].password) {
-      res.cookie("user_id", userID);
-      return res.redirect("/urls");
-    } else if (email === UserDatabase[userID].email && password !== UserDatabase[userID].password) {
-      res.status(403);
-      return res.send("Password does not match account on file.");
-    }
-  }
 
-  res.status(403);
-  res.send("User account does not exist.");
+  let userID = getUserByEmail(email, UserDatabase);
+
+  if (userID) {
+    const hashedPassword = UserDatabase[userID].password;
+
+    if (bcrypt.compareSync(password, hashedPassword)) {
+      res.cookie("user_id", userID);
+      res.redirect("/urls");
+    } else {
+      return res.send("Incorrect Password");
+    }
+  } else {
+    res.status(403);
+    res.send("User account does not exist.");
+    return res.redirect('/login');
+  }
 
 });
 
@@ -280,7 +291,7 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
   const id = generateRandomString();
 
   if (email.length === 0 || password.length === 0) {
