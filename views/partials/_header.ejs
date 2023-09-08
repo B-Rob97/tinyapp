@@ -17,25 +17,27 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-    </div> 
-    <div>
+    </div>
+    <div class="ml-auto d-flex">
       <!-- Check if user exists -->
       <% if (user && typeof user.email !== 'undefined') { %>
         <form action="/logout" method="post">
-          <label 
-            style="vertical-align: middle;" 
-            for="logout" class="email-display">Logged in as: <%= user.email %>!</label>
+          <label style="vertical-align: middle;" for="logout" class="email-display">Logged in as: <%= user.email %>!</label>
           <button type="submit" class ='btn btn-dark'>Logout</button>
         </form>
       <% } else { %>
         <!-- Show Login and Register buttons -->
-        <form action="/login" method="get">
-          <button type="submit" class="btn btn-light">Login</button>
-        </form>
-        <form action="/register" method="get">
-          <button type="submit" class="btn btn-light">Register</button>
-        </form>
+        <div class="btn-group">
+          <form action="/login" method="get">
+            <button type="submit" class="btn btn-light mr-2">Login</button>
+          </form>
+          <form action="/register" method="get">
+            <button type="submit" class="btn btn-light">Register</button>
+          </form>
+        </div>
       <% } %>
     </div>
+    
+    
   </nav>
 </header>
