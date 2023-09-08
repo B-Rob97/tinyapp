@@ -3,6 +3,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require("bcryptjs");
 const { getUserByEmail, generateRandomString, urlsForUser } = require("./helpers");
+const { userDatabase, urlDatabase } = require("./db");
 const cookieSession = require('cookie-session');
 
 const app = express();
@@ -17,10 +18,6 @@ app.use(cookieSession({
   keys: [generateRandomString(5)]
 }));
 
-// URL & User Database
-const urlDatabase = {};
-const userDatabase = {};
-
 // Home
 app.get('/', (req, res) => {
   return res.redirect('/login');
@@ -29,13 +26,14 @@ app.get('/', (req, res) => {
 // New URL Get Route
 app.get("/urls/new", (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
-
+  const longURL = req.body.longURL;
   if (!loggedInUser) {
     return res.redirect("/login");
   }
 
   const templateVars = {
-    user: loggedInUser
+    user: loggedInUser,
+    longURL
   };
   res.render("urls_new", templateVars);
 });
@@ -50,22 +48,25 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = { longURL, userID: loggedInUser.id };
-  res.redirect(`/urls`);
+  res.redirect(`/urls/${shortURL}`);
 });
 
 // Specific URL Get Route
 app.get('/urls/:id', (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
   const shortURL = req.params.id;
+  const url = urlDatabase[shortURL];
 
   if (!loggedInUser) {
-    return res.send("Please log in to edit a URL");
+    res.status(403).send("Error: Please log in to view URLs");
   }
-
-  const url = urlDatabase[shortURL];
 
   if (!url) {
     return res.status(404).send("Error: URL does not exist");
+  }
+
+  if (urlDatabase[shortURL].userID !== loggedInUser.id) {
+    return res.status(403).send("Error: You do not have permission to edit this URL");
   }
 
   const templateVars = {
@@ -82,6 +83,12 @@ app.post(`/urls/:id`, (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
+  console.log("Long URL:", req.body.longURL);
+  console.log("body:", req.body);
+
+  if (urlDatabase[shortURL].userID !== loggedInUser.id) {
+    return res.status(403).send("Error: You do not have permission to edit this URL");
+  }
 
   if (!loggedInUser) {
     return res.send("Please log in to edit a URL");
@@ -91,39 +98,16 @@ app.post(`/urls/:id`, (req, res) => {
     return res.status(404).send("Error: URL does not exist");
   }
 
-  if (urlDatabase[shortURL].userID !== loggedInUser.id) {
-    return res.status(403).send("Error: You do not have permission to edit this URL");
-  }
-
-  urlDatabase[shortURL] = { longURL, userID: loggedInUser.id };
+  urlDatabase[shortURL] = {
+    longURL,
+    userID: loggedInUser.id
+  };
+  console.log(urlDatabase);
   res.redirect(`/urls`);
 });
 
 // Delete a URL Post Route
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const loggedInUser = userDatabase[req.session.user_id];
-  
-  if (!loggedInUser) {
-    return res.send("Please log in to delete a URL");
-  }
-
-  const shortURL = req.params.shortURL;
-  const url = urlDatabase[shortURL];
-
-  if (!url) {
-    return res.status(404).send("Error: URL does not exist");
-  }
-
-  if (url.userID !== loggedInUser.id) {
-    return res.status(403).send("Error: You do not have permission to delete this URL");
-  }
-
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
-});
-
-// Delete URL Get Route
-app.get('/urls/:shortURL/delete', (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
   
   if (!loggedInUser) {
