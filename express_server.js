@@ -83,12 +83,6 @@ app.post(`/urls/:id`, (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
-  console.log("Long URL:", req.body.longURL);
-  console.log("body:", req.body);
-
-  if (urlDatabase[shortURL].userID !== loggedInUser.id) {
-    return res.status(403).send("Error: You do not have permission to edit this URL");
-  }
 
   if (!loggedInUser) {
     return res.send("Please log in to edit a URL");
