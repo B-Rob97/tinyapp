@@ -1,6 +1,5 @@
 // Import required dependencies and modules
 const express = require('express');
-const cookieParser = require('cookie-parser');
 const bcrypt = require("bcryptjs");
 const { getUserByEmail, generateRandomString, urlsForUser } = require("./helpers");
 const { userDatabase, urlDatabase } = require("./db");
@@ -12,16 +11,16 @@ const PORT = 8080;
 // Middleware
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: [generateRandomString(5)]
 }));
 
-// Home
+// Homepage
 app.get('/', (req, res) => {
   return res.redirect('/login');
 });
+
 
 // New URL Get Route
 app.get("/urls/new", (req, res) => {
@@ -96,20 +95,18 @@ app.post(`/urls/:id`, (req, res) => {
     longURL,
     userID: loggedInUser.id
   };
-  console.log(urlDatabase);
   res.redirect(`/urls`);
 });
 
 // Delete a URL Post Route
 app.post('/urls/:shortURL/delete', (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
-  
+  const shortURL = req.params.shortURL;
+  const url = urlDatabase[shortURL];
+
   if (!loggedInUser) {
     return res.send("Please log in to delete a URL");
   }
-
-  const shortURL = req.params.shortURL;
-  const url = urlDatabase[shortURL];
 
   if (!url) {
     return res.status(404).send("Error: URL does not exist");
@@ -138,25 +135,23 @@ app.get("/u/:id", (req, res) => {
 // All URLs Get Route
 app.get('/urls', (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
-  
+  const userURLs = urlsForUser(loggedInUser.id, urlDatabase);
+
   if (!loggedInUser) {
     return res.send("Please log in or register to view short URLs");
   }
 
-  const userURLs = urlsForUser(loggedInUser.id, urlDatabase);
-  
   const templateVars = {
     user: loggedInUser,
     urls: userURLs
   };
+
   res.render("urls_index", templateVars);
 });
 
 
 // Login Get Route
-
 app.get("/login", (req, res) => {
-  
   const loggedInUser = userDatabase[req.session.user_id];
   
   if (loggedInUser) {
@@ -174,15 +169,13 @@ app.get("/login", (req, res) => {
 // Login Post Route
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-
   const userID = getUserByEmail(email, userDatabase);
-
+  const hashedPassword = userDatabase[userID].hashedPassword;
+  
   if (!userID) {
     res.status(403);
     return res.send("User account does not exist.");
   }
-
-  const hashedPassword = userDatabase[userID].hashedPassword;
 
   if (!bcrypt.compareSync(password, hashedPassword)) {
     res.status(403);
@@ -241,8 +234,6 @@ app.post("/register", (req, res) => {
   userDatabase[id] = newUser;
 
   req.session.user_id = id;
-
-  console.log(userDatabase);
 
   res.redirect("/urls");
 });
