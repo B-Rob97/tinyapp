@@ -31,7 +31,7 @@ app.get("/urls/new", (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
 
   if (!loggedInUser) {
-    res.redirect("/login");
+    return res.redirect("/login");
   }
 
   const templateVars = {
