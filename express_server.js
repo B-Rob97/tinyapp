@@ -23,7 +23,7 @@ const userDatabase = {};
 
 // Home
 app.get('/', (req, res) => {
-  res.redirect('/login');
+  return res.redirect('/login');
 });
 
 // New URL Get Route
@@ -31,7 +31,7 @@ app.get("/urls/new", (req, res) => {
   const loggedInUser = userDatabase[req.session.user_id];
 
   if (!loggedInUser) {
-    return res.redirect("/login");
+    res.redirect("/login");
   }
 
   const templateVars = {
@@ -197,20 +197,18 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  let userID = getUserByEmail(email, userDatabase);
-
-  if (userID) {
-    const hashedPassword = userDatabase[userID].password;
-
-    if (!bcrypt.compareSync(password, hashedPassword)) {
-      return res.send("Incorrect Password");
-    }
-  }
+  const userID = getUserByEmail(email, userDatabase);
 
   if (!userID) {
     res.status(403);
     return res.send("User account does not exist.");
-    
+  }
+
+  const hashedPassword = userDatabase[userID].hashedPassword;
+
+  if (!bcrypt.compareSync(password, hashedPassword)) {
+    res.status(403);
+    return res.send("Incorrect Password");
   }
 
   req.session.user_id = userID;
@@ -242,7 +240,8 @@ app.get("/register", (req, res) => {
 // Registration Post Route
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = bcrypt.hashSync(req.body.password, 10);
+  const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   const id = generateRandomString();
 
   if (email.length === 0 || password.length === 0) {
@@ -258,12 +257,14 @@ app.post("/register", (req, res) => {
   const newUser = {
     id,
     email,
-    password
+    hashedPassword
   };
 
   userDatabase[id] = newUser;
 
   req.session.user_id = id;
+
+  console.log(userDatabase);
 
   res.redirect("/urls");
 });
